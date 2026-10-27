@@ -11,10 +11,12 @@ rsomics-rnaseq-qc integrity --bam sample.bam --genes genes.bed12 --out sample-ti
 ```
 
 Input is one coordinate-sorted BAM and validated BED12 annotation. No BAM index
-is needed. The original records are traversed once using `rsomics-bamio`, with
-parallel BGZF inflation controlled by `--threads`. Record-level metrics observe
-the original records. The existing `rsomics-pileup` engine supplies separate
-pileup filtering and paired-overlap quality adjustment. Focused commands select
+is needed. The original records are traversed once using `rsomics-bamio`. Global
+`-t N` / `--threads N` controls BGZF inflation and RSeQC query-replay workers and
+may appear before or after the subcommand. Omitting it retains the available-core
+default. Record-level metrics observe the original records. The existing
+`rsomics-pileup` engine supplies separate pileup filtering and paired-overlap
+quality adjustment. Focused commands select
 the same accumulators; `mapping` may omit `--genes`.
 
 `canonical` is the default distribution policy: correct full-CIGAR geometry and

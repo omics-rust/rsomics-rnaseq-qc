@@ -2,7 +2,7 @@ use std::num::NonZero;
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
-use rsomics_common::{OutputArgs, ToolMeta};
+use rsomics_common::{OutputArgs, ThreadArgs, ToolMeta};
 use serde::Serialize;
 
 #[derive(Debug, Parser)]
@@ -14,6 +14,8 @@ use serde::Serialize;
 pub struct Cli {
     #[command(subcommand)]
     command: Command,
+    #[command(flatten)]
+    threads: ThreadArgs,
     #[command(flatten)]
     output: OutputArgs,
 }
@@ -63,8 +65,7 @@ pub(crate) struct Inputs {
         help_heading = "Compatibility"
     )]
     pub profile: Profile,
-    /// BGZF inflate and RSeQC query-replay workers; defaults to the available core count.
-    #[arg(long, value_name = "N", help_heading = "Execution")]
+    #[arg(skip)]
     pub threads: Option<NonZero<usize>>,
     /// Mapping and strandedness MAPQ cutoff; distribution and pileup retain their own policy.
     #[arg(long, default_value_t = 30, help_heading = "Metric policy")]
@@ -85,7 +86,7 @@ pub(crate) struct Inputs {
 
 impl Cli {
     pub fn run(self) -> std::process::ExitCode {
-        let (inputs, metrics) = match self.command {
+        let (mut inputs, metrics) = match self.command {
             Command::Report(inputs) => (inputs, crate::report::Selection::all()),
             Command::Mapping(inputs) => (inputs, crate::report::Selection::only("mapping")),
             Command::Strandedness(inputs) => {
@@ -97,6 +98,7 @@ impl Cli {
             Command::Coverage(inputs) => (inputs, crate::report::Selection::only("coverage")),
             Command::Integrity(inputs) => (inputs, crate::report::Selection::only("integrity")),
         };
+        inputs.threads = self.threads.requested();
         rsomics_common::run(
             &self.output,
             ToolMeta {

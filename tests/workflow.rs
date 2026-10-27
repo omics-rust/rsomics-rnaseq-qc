@@ -249,26 +249,34 @@ fn source_queries_restart_overlap_history_and_replay_original_qualities() {
         serde_json::from_slice(&fs::read(canonical.join("report.json")).unwrap()).unwrap();
     assert_eq!(canonical["coverage"]["coverage"][4], 2);
     let mut baseline = None;
-    for workers in ["1", "4"] {
-        let output = dir.path().join(format!("source-{workers}"));
-        let result = Command::new(env!("CARGO_BIN_EXE_rsomics-rnaseq-qc"))
-            .args([
-                "report",
-                "--bam",
-                bam.to_str().unwrap(),
-                "--genes",
-                genes.to_str().unwrap(),
-                "--out",
-                output.to_str().unwrap(),
-                "--profile",
-                "rseqc-5.0.5",
-                "--threads",
-                workers,
-                "--tin-min-starts",
-                "0",
-            ])
-            .output()
-            .unwrap();
+    for (workers, option, global_before) in [
+        ("1", "-t", true),
+        ("4", "--threads", true),
+        ("1", "--threads", false),
+        ("4", "-t", false),
+    ] {
+        let output = dir.path().join(format!("source-{workers}-{global_before}"));
+        let mut command = Command::new(env!("CARGO_BIN_EXE_rsomics-rnaseq-qc"));
+        if global_before {
+            command.args([option, workers]);
+        }
+        command.args([
+            "report",
+            "--bam",
+            bam.to_str().unwrap(),
+            "--genes",
+            genes.to_str().unwrap(),
+            "--out",
+            output.to_str().unwrap(),
+            "--profile",
+            "rseqc-5.0.5",
+            "--tin-min-starts",
+            "0",
+        ]);
+        if !global_before {
+            command.args([option, workers]);
+        }
+        let result = command.output().unwrap();
         assert!(
             result.status.success(),
             "{}",
@@ -290,6 +298,10 @@ fn source_queries_restart_overlap_history_and_replay_original_qualities() {
             serde_json::from_slice(&fs::read(output.join("manifest.json")).unwrap()).unwrap();
         assert_eq!(manifest["bam_traversals"], 1);
         assert_eq!(manifest["original_records"], 3);
+        assert_eq!(
+            manifest["inflate_workers"],
+            workers.parse::<usize>().unwrap()
+        );
         if let Some(previous) = &baseline {
             assert_eq!(&bytes, previous);
         }
