@@ -249,22 +249,38 @@ pub(crate) fn run(inputs: &Inputs, selection: Selection, emit_plain: bool) -> Re
         adjust_overlaps: true,
         maximum_depth_per_source: Some(8000),
     };
-    let mut sampled_pileup = if selection.coverage || selection.integrity {
-        Some((
-            PileupEngine::new(references.iter().map(|reference| reference.length), options),
-            SampledMetrics::new(
-                &annotation,
-                &reference_names,
-                selection.coverage,
-                selection.integrity,
-                inputs.min_mrna_length as usize,
-                inputs.tin_sample_size.get(),
-                inputs.tin_min_starts,
-            ),
+    let mut sampled = if selection.coverage || selection.integrity {
+        Some(SampledMetrics::new(
+            &annotation,
+            &reference_names,
+            selection.coverage,
+            selection.integrity,
+            inputs.min_mrna_length as usize,
+            inputs.tin_sample_size.get(),
+            inputs.tin_min_starts,
         ))
     } else {
         None
     };
+    let mut source_queries = if inputs.profile == Profile::Rseqc505 {
+        sampled
+            .as_mut()
+            .map(|sampled| {
+                sampled.source_queries(
+                    references
+                        .iter()
+                        .map(|reference| reference.length)
+                        .collect(),
+                    options,
+                    workers.get(),
+                )
+            })
+            .transpose()?
+    } else {
+        None
+    };
+    let mut canonical_pileup = (sampled.is_some() && inputs.profile == Profile::Canonical)
+        .then(|| PileupEngine::new(references.iter().map(|reference| reference.length), options));
     let mut record = RawRecord::default();
     let mut cigar = Vec::with_capacity(32);
     let mut original_records = 0;
@@ -291,8 +307,12 @@ pub(crate) fn run(inputs: &Inputs, selection: Selection, emit_plain: bool) -> Re
         if let Some(distribution) = &mut distribution {
             distribution.observe(&record, &cigar, inputs.profile == Profile::Rseqc505)?;
         }
-        if let Some((pileup, sampled)) = &mut sampled_pileup {
+        if let Some(sampled) = &mut sampled {
             sampled.observe_start(&record, &index);
+        }
+        if let Some(queries) = &mut source_queries {
+            queries.observe(std::mem::take(&mut record), &cigar)?;
+        } else if let (Some(pileup), Some(sampled)) = (&mut canonical_pileup, &mut sampled) {
             pileup
                 .push(std::mem::take(&mut record))
                 .map_err(pileup_error)?;
@@ -302,20 +322,23 @@ pub(crate) fn run(inputs: &Inputs, selection: Selection, emit_plain: bool) -> Re
             })?;
         }
     }
-    if let Some((pileup, sampled)) = &mut sampled_pileup {
+    if let (Some(pileup), Some(sampled)) = (&mut canonical_pileup, &mut sampled) {
         pileup.finish().map_err(pileup_error)?;
         pileup.drain(|column| {
             sampled.observe_column(column);
             Ok::<_, RsomicsError>(())
         })?;
     }
+    if let (Some(queries), Some(sampled)) = (source_queries, &mut sampled) {
+        sampled.set_query_depths(queries.finish()?);
+    }
     let sample = inputs
         .bam
         .file_stem()
         .map(|name| name.to_string_lossy().into_owned())
         .unwrap_or_else(|| "sample".into());
-    let (coverage, integrity) = sampled_pileup
-        .map(|(_, sampled)| sampled.finish(&annotation, &sample))
+    let (coverage, integrity) = sampled
+        .map(|sampled| sampled.finish(&annotation, &sample))
         .unwrap_or((None, None));
     let report = Report {
         schema_version: "1.0",
@@ -398,12 +421,10 @@ pub(crate) fn run(inputs: &Inputs, selection: Selection, emit_plain: bool) -> Re
             pileup_baq: false,
         },
         known_limitations: vec![
-            "Global depth-8000 admission is not yet proven equivalent to RSeQC's transcript-restarted pileup at high-depth query boundaries",
-            "The retained source witness does not exercise depth-8000 truncation, low base qualities, or anomalous pairs",
+            "Depth-8000 saturation is not independently certified by the retained RSeQC witnesses",
             "Canonical distribution intentionally differs from pinned legacy CIGAR and zero-width midpoint quirks",
             "Malformed annotation, absent annotation contigs, and malformed paired-segment identities fail instead of being silently skipped",
             "BAM identity records path, size, and mtime; BAM content is not reread solely to hash it",
-            "This unpublished candidate has not passed the four-native-platform or representative-performance release gates",
         ],
         outputs: Vec::new(),
     };

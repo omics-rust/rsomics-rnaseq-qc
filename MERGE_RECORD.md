@@ -36,16 +36,21 @@ The implemented contracts were checked against the retained script/qcmodule
 logic, not inferred from retired crate names or old success claims. Source
 defaults use pysam 0.24.0/samtools 1.23.1: excluded flags `0x704`, MAPQ 0,
 proper-pair admission, adjusted overlap qualities, depth 8000, BQ 13, no BAQ
-without a supplied FASTA. Those mechanisms are delegated to published
-`rsomics-pileup` 0.9.0 rather than copied into this product.
+without a supplied FASTA. Those mechanisms are delegated to `rsomics-pileup`
+rather than copied into this product. The current private candidate pins its
+0.9.1 source revision while registry publication is blocked by authentication.
 
 Canonical distribution corrects CIGAR and point semantics; explicitly selected
 `rseqc-5.0.5` preserves them. The zero-width midpoint query was verified in
 bx-python 0.15.1 `lib/bx/intervals/intersection.pyx` (`_intersect` requires
 strict overlap). TIN's `100 * exp(entropy) / sampled_length` is positive at zero
 entropy when coverage is positive; the source entropy case is `100/102`.
-Eligible-zero transcripts remain in the sample summary. Source query-restarted
-depth admission versus one global engine remains unproved above depth 8000.
+Eligible-zero transcripts remain in the sample summary. The RSeQC profile
+replays independent pileup contexts using the actual sorted source query
+bounds and original unadjusted qualities. Identical query windows share replay;
+record buffering is bounded by live spans and retired batches, not a fixed
+absolute memory ceiling. Canonical coverage/integrity retain one global engine.
+The depth-8000 saturation boundary remains uncertified.
 
 Upstream attribution: Wang et al., RSeQC, Bioinformatics (2012),
 <https://doi.org/10.1093/bioinformatics/bts356>; Wang et al., TIN, BMC
@@ -56,6 +61,24 @@ team-owned Rust code uses MIT OR Apache-2.0; no clean-room or certification
 claim is made.
 
 ## Candidate verification ledger
+
+Current source-query work supersedes the older global-pileup candidate below.
+The complete original input (9,810,963 records, 58,384 transcript rows) matches
+all five actual source metrics at one/four workers: 45,052 eligible TIN rows,
+100 coverage bins, total coverage 13,624,401. Reports are byte-identical across
+workers. These local boundary checks are not formal performance distributions
+or fresh four-native acceptance. A whole-feature review and scoped follow-up
+closed the unmapped-record query-watermark finding. The new regression keeps
+placed-unmapped coordinates from advancing source query state.
+
+Shared producer fixes retain filtered-record overlap state, reproduce HTSlib's
+QName-keyed expiry, and advance emission only for admitted records. Actual
+samtools comparisons and consumer regressions cover those contracts. No new
+public foundation item, product dependency or copied Python implementation is
+introduced. Final registry adoption, four-native acceptance and complete
+CPU/RSS/I/O measurements remain open.
+
+Historical green4 checkpoint:
 
 - Read actual pinned behavior and successful single/paired source observations.
 - Whole-workflow tests authored first; native execution intentionally deferred

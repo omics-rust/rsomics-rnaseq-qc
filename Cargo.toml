@@ -11,10 +11,11 @@ publish = false
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
+rayon = "1.11"
 rsomics-bamio = "=0.8.4"
 rsomics-common = "=0.12.3"
 rsomics-help = "=0.4.0"
-rsomics-pileup = "=0.9.0"
+rsomics-pileup = { version = "=0.9.1", git = "https://github.com/omics-rust/rsomics-pileup.git", rev = "93986e17f4c3a62716b0b6434737c3f46368478a" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"

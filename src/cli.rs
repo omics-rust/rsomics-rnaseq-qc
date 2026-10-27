@@ -55,7 +55,7 @@ pub(crate) struct Inputs {
     /// Directory for the transactional JSON, TSV, and manifest output set.
     #[arg(long, value_name = "DIRECTORY", help_heading = "Outputs")]
     pub out: PathBuf,
-    /// Canonical CIGAR geometry or the pinned RSeQC distribution quirks.
+    /// Canonical geometry or pinned RSeQC distribution and query-local pileup.
     #[arg(
         long,
         value_enum,
@@ -63,7 +63,7 @@ pub(crate) struct Inputs {
         help_heading = "Compatibility"
     )]
     pub profile: Profile,
-    /// BGZF inflate workers; defaults to the available core count.
+    /// BGZF inflate and RSeQC query-replay workers; defaults to the available core count.
     #[arg(long, value_name = "N", help_heading = "Execution")]
     pub threads: Option<NonZero<usize>>,
     /// Mapping and strandedness MAPQ cutoff; distribution and pileup retain their own policy.

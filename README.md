@@ -13,17 +13,20 @@ rsomics-rnaseq-qc integrity --bam sample.bam --genes genes.bed12 --out sample-ti
 Input is one coordinate-sorted BAM and validated BED12 annotation. No BAM index
 is needed. The original records are traversed once using `rsomics-bamio`, with
 parallel BGZF inflation controlled by `--threads`. Record-level metrics observe
-the original records before the existing `rsomics-pileup` engine performs its
-separate pileup filtering and paired-overlap quality adjustment. Focused
-commands select the same accumulators; `mapping` may omit `--genes`.
+the original records. The existing `rsomics-pileup` engine supplies separate
+pileup filtering and paired-overlap quality adjustment. Focused commands select
+the same accumulators; `mapping` may omit `--genes`.
 
 `canonical` is the default distribution policy: correct full-CIGAR geometry and
 half-open point membership. Explicit `rseqc-5.0.5` retains the pinned source's
 M-only blocks, reference-advancing soft clips, ignored `=`/`X`, and zero-width
-midpoint query. Other metric definitions use the pinned source contracts in
-both profiles. This is not a claim of general RSeQC equivalence: high-depth
-admission differs potentially at transcript query boundaries and remains an
-unproved compatibility boundary.
+midpoint query. It also restarts pileup state per source transcript query,
+sharing buffered original records and replaying independent contexts in
+parallel. Canonical coverage and integrity use a global pileup instead. Both
+profiles read BAM bytes once; query buffering depends on live alignment and
+transcript spans rather than a whole-BAM copy. Other metric definitions use
+the pinned source contracts in both profiles. Depth-8000 saturation remains an
+uncertified compatibility boundary, not a claim of general RSeQC equivalence.
 
 Each invocation transactionally publishes `report.json`, selected metric TSVs,
 and `manifest.json` using `rsomics-common`. The manifest records filters,
@@ -48,13 +51,14 @@ unsorted mapped records, and malformed paired-segment identities fail loudly.
 BED rows retain their order and repeated gene names; TIN retains repeated rows,
 while coverage deduplicates the source's full transcript identity.
 
-The complete declared slice passes hosted native Linux/macOS x86_64/aarch64
+An earlier candidate passes hosted native Linux/macOS x86_64/aarch64
 formatting, strict Clippy, and eight tests in both debug and release. Run
 [40546148508](https://github.com/omics-rust/rsomics-world/actions/runs/40546148508)
 compares all five metrics with actual RSeQC single/paired semantic fixtures at
 one and four workers on every platform; report bytes also agree across those
 platforms and workers. These are small synthetic semantic fixtures, not a
-representative workload. Real RNA-seq compatibility and coordinated CPU/RSS/I/O
-measurements remain required before a release decision. The frozen candidate's
-manifest maturity text predates that successful native run. See
+representative workload. The current source-query implementation also matches
+all five source metrics on the complete 9,810,963-record input at one and four
+workers locally. Its fresh four-native gate and coordinated CPU/RSS/I/O
+measurements remain required before a release decision. See
 [MERGE_RECORD.md](MERGE_RECORD.md) for behavior and implementation provenance.
