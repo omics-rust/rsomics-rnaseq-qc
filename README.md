@@ -1,0 +1,60 @@
+# rsomics-rnaseq-qc
+
+Private, unpublished candidate for one coordinated RNA-seq QC workflow. The
+declared slice is `report`, `mapping`, `strandedness`, `distribution`, `coverage`,
+and `integrity`; later metrics are not exposed.
+
+```sh
+rsomics-rnaseq-qc report --bam sample.bam --genes genes.bed12 --out sample-qc
+rsomics-rnaseq-qc report --bam sample.bam --genes genes.bed12 --out legacy-qc --profile rseqc-5.0.5
+rsomics-rnaseq-qc integrity --bam sample.bam --genes genes.bed12 --out sample-tin
+```
+
+Input is one coordinate-sorted BAM and validated BED12 annotation. No BAM index
+is needed. The original records are traversed once using `rsomics-bamio`, with
+parallel BGZF inflation controlled by `--threads`. Record-level metrics observe
+the original records before the existing `rsomics-pileup` engine performs its
+separate pileup filtering and paired-overlap quality adjustment. Focused
+commands select the same accumulators; `mapping` may omit `--genes`.
+
+`canonical` is the default distribution policy: correct full-CIGAR geometry and
+half-open point membership. Explicit `rseqc-5.0.5` retains the pinned source's
+M-only blocks, reference-advancing soft clips, ignored `=`/`X`, and zero-width
+midpoint query. Other metric definitions use the pinned source contracts in
+both profiles. This is not a claim of general RSeQC equivalence: high-depth
+admission differs potentially at transcript query boundaries and remains an
+unproved compatibility boundary.
+
+Each invocation transactionally publishes `report.json`, selected metric TSVs,
+and `manifest.json` using `rsomics-common`. The manifest records filters,
+annotation SHA-256, deterministic first-N population, actual metric selection,
+omitted metrics, input size/mtime, workers, elapsed time, known limitations, and
+output checksums. It does not reread BAM bytes only to hash the input. Existing
+unselected tables are not deleted; the manifest is authoritative for the output
+set. `--json` uses the common structured command envelope on stdout; errors are
+non-zero. CLI presentation is supplied by `rsomics-help`.
+
+TIN eligibility uses strictly more than `--tin-min-starts` distinct starts,
+including duplicates and all MAPQ after excluding unmapped/secondary/QC-fail.
+The summary includes every eligible transcript, including zero scores, and uses
+population standard deviation. All-zero eligible data and an empty eligible
+population are distinguished by `eligible_transcripts`. Coverage percentiles
+interpolate the genomic exon-base list, collapse repeated positions as the
+source does, and orient each transcript before aggregation. For short eligible
+transcripts this can produce fewer than 100 unique output bins.
+
+Malformed annotation, contigs absent from the BAM header, invalid BAM/CIGAR,
+unsorted mapped records, and malformed paired-segment identities fail loudly.
+BED rows retain their order and repeated gene names; TIN retains repeated rows,
+while coverage deduplicates the source's full transcript identity.
+
+The complete declared slice passes hosted native Linux/macOS x86_64/aarch64
+formatting, strict Clippy, and eight tests in both debug and release. Run
+[40546148508](https://github.com/omics-rust/rsomics-world/actions/runs/40546148508)
+compares all five metrics with actual RSeQC single/paired semantic fixtures at
+one and four workers on every platform; report bytes also agree across those
+platforms and workers. These are small synthetic semantic fixtures, not a
+representative workload. Real RNA-seq compatibility and coordinated CPU/RSS/I/O
+measurements remain required before a release decision. The frozen candidate's
+manifest maturity text predates that successful native run. See
+[MERGE_RECORD.md](MERGE_RECORD.md) for behavior and implementation provenance.
