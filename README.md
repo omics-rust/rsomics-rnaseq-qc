@@ -53,14 +53,27 @@ unsorted mapped records, and malformed paired-segment identities fail loudly.
 BED rows retain their order and repeated gene names; TIN retains repeated rows,
 while coverage deduplicates the source's full transcript identity.
 
-An earlier candidate passes hosted native Linux/macOS x86_64/aarch64
-formatting, strict Clippy, and eight tests in both debug and release. Run
-[40546148508](https://github.com/omics-rust/rsomics-world/actions/runs/40546148508)
-compares all five metrics with actual RSeQC single/paired semantic fixtures at
-one and four workers on every platform; report bytes also agree across those
-platforms and workers. These are small synthetic semantic fixtures, not a
-representative workload. The current source-query implementation also matches
-all five source metrics on the complete 9,810,963-record input at one and four
-workers locally. Its fresh four-native gate and coordinated CPU/RSS/I/O
-measurements remain required before a release decision. See
+The source-query implementation passes hosted native Linux/macOS x86_64/aarch64
+formatting, strict Clippy, and 11 tests in debug and release. Runs
+[40590326515](https://github.com/omics-rust/rsomics-world/actions/runs/40590326515)
+and [40597129172](https://github.com/omics-rust/rsomics-world/actions/runs/40597129172)
+compare all five metrics with actual RSeQC single/paired semantic fixtures at
+one and four workers. The latter changes only shared thread-argument plumbing.
+Those synthetic report bytes agree across platforms and workers.
+
+Whole-input performance run
+[40592936910](https://github.com/omics-rust/rsomics-world/actions/runs/40592936910)
+measures the earlier source-query binary on a 9,810,963-record paired BAM and
+58,384 transcript rows. All five source metric gates pass. On one Linux host,
+warm-cache median wall time is 1557.27 seconds for the five serial RSeQC scripts,
+54.94 seconds for one native worker, and 28.95 seconds for four workers. The
+serial speedup is 28.34x; observed worker gain is 1.90x. Median process peak RSS
+is 21.11% lower at one worker. Native uses more output blocks; this is not a
+cold-I/O, universal-dataset or linear-scaling claim. Real-input Mac/Linux TIN
+rounding differs within the fixed numeric bound, unlike the synthetic fixtures'
+byte equality. Original measurements and their exact binary remain separately
+identified; later code does not inherit a benchmark by name alone.
+
+Registry adoption of the tested pileup foundation and final publication review
+remain required before release. The candidate stays unpublished. See
 [MERGE_RECORD.md](MERGE_RECORD.md) for behavior and implementation provenance.

@@ -66,8 +66,7 @@ Current source-query work supersedes the older global-pileup candidate below.
 The complete original input (9,810,963 records, 58,384 transcript rows) matches
 all five actual source metrics at one/four workers: 45,052 eligible TIN rows,
 100 coverage bins, total coverage 13,624,401. Reports are byte-identical across
-workers. These local boundary checks are not formal performance distributions
-or fresh four-native acceptance. A whole-feature review and scoped follow-up
+workers. A whole-feature review and scoped follow-up
 closed the unmapped-record query-watermark finding. The new regression keeps
 placed-unmapped coordinates from advancing source query state.
 
@@ -75,8 +74,38 @@ Shared producer fixes retain filtered-record overlap state, reproduce HTSlib's
 QName-keyed expiry, and advance emission only for admitted records. Actual
 samtools comparisons and consumer regressions cover those contracts. No new
 public foundation item, product dependency or copied Python implementation is
-introduced. Final registry adoption, four-native acceptance and complete
-CPU/RSS/I/O measurements remain open.
+introduced.
+
+Source-query commit59f50135425702ce10f9dbc38fd8dc113b5b5fd6 (green5) passes
+four-native40590326515:11 tests per debug/release profile, strict checks and
+all16 complete source comparisons. Commitb7287f26d8d6f1d6e46bf580e850eb639d8a0ed0
+changes only shared ThreadArgs plumbing; green6/run40597129172 also passes
+all four classes. Both original artifact/source/binary/oracle chains are
+retained and verified. Synthetic single/paired report bytes agree across
+workers/platforms; this is not an assertion about real-whole floating bytes.
+
+Whole-input performance40592936910 at exact world5fcb3820198c8fe8fd3e463a609b276df7ae590a
+measures only green5's Linux executable
+48091abdb22d5d91e18a733848798b8a9ae3dd83d3d8117dd77feca08fd13707.
+The original full BAM/annotation and all5 source metric gates pass in every
+trial, with no tolerance/input change. Warm-cache medians1557.27/54.94/28.95s
+for source/native1/native4 give28.34x serial speed and1.90x worker gain with
+separated ranges. Median process RSS885276/698436/704704KiB gives21.11% lower
+serial RSS, not the old chr21 ratio. More native output blocks preclude an
+I/O-volume advantage. Four logical CPUs were allocated;80-core model naming
+does not imply80 available cores. All521 original artifact files, raw API/
+logs/time/process/output manifests and exact measured controller are retained:
+/Volumes/Zane's HDD/rsomics-fixtures/evidence/rnaseq-qc-real-performance-2026-10-28/run-40592936910/.
+Verification SHA
+fdee7132f239d321aa29363337739fd48eefba54daa430a30a3641ba103d405c.
+
+Linux whole-report SHA8ce96492da5b184e961bb702cbf4d5de913db3f478aeb8045b09bcc447b4aebf
+and earlier Mac70d947d7c5e3181a2ddec7114c73bba46452ee25e0b2f39b58bda20fc9215836
+have exactly63 TIN scalar differences, maximum2.842170943040401e-14, within
+the unchanged bound; every other field and TIN summary matches. This is
+numerical compatibility, not cross-platform whole-report byte equality.
+Registry adoption and final publication review remain open. These documentation
+updates do not change the measured or four-native source code.
 
 Historical green4 checkpoint:
 
