@@ -1,9 +1,57 @@
 # rsomics-rnaseq-qc
 
-Private, unpublished candidate for one coordinated RNA-seq QC workflow. The
-declared slice is `report`, `mapping`, `strandedness`, `distribution`, `coverage`,
+One coordinated RNA-seq QC workflow. The first-release slice is
+`report`, `mapping`, `strandedness`, `distribution`, `coverage`,
 `integrity`, and `junctions`; later metrics are not exposed. The default report
 keeps the established five metrics. Junctions requires explicit selection.
+
+See [CI](https://github.com/omics-rust/rsomics-rnaseq-qc/actions/workflows/ci.yml)
+and [GitHub releases](https://github.com/omics-rust/rsomics-rnaseq-qc/releases)
+for source/native delivery. crates.io publication remains disabled.
+
+## Install and first workflow
+
+Native archives are target-specific for Linux and macOS on x86_64 and aarch64.
+Verify the release SHA256SUMS before extracting an archive and adding its
+single executable to PATH. The installed binary needs no Python or R runtime.
+Project licenses and complete third-party notices accompany each archive.
+
+The accompanying `rsomics-rnaseq-qc-VERSION-source.tar` is an uncompressed,
+deterministic Git source archive, not a Cargo registry `.crate` or an offline
+vendored bundle. It preserves the exact original Cargo.toml/Cargo.lock and
+public pileup Git dependency. For version0.1.0:
+
+```sh
+tar -xf rsomics-rnaseq-qc-0.1.0-source.tar
+cd rsomics-rnaseq-qc-0.1.0-source
+cargo install --path . --locked --root /path/to/install-prefix
+```
+
+Source installation requires Rust1.91 or later and network/cache access to
+the locked public dependencies, including `rsomics-pileup0.9.1` at
+`93986e17f4c3a62716b0b6434737c3f46368478a`. Choose your own install prefix and
+add its `bin` directory to PATH. Do not replace this Git pin with a registry
+version as installation housekeeping.
+
+From the source tree, this executable example decodes an already-qualified,
+team-generated175-record paired fixture and runs the default five metrics:
+
+```sh
+python3 scripts/delivery.py fixture --out demo-input
+rsomics-rnaseq-qc report --bam demo-input/paired.bam --genes demo-input/genes.bed12 \
+  --out demo-qc --threads 4
+rsomics-rnaseq-qc junctions --bam tests/fixtures/junctions/informative-paired/input.bam \
+  --genes tests/fixtures/junctions/informative-paired/genes.bed12 \
+  --out demo-junctions --profile rseqc-5.0.5 --threads 4
+```
+
+Python is used only by that optional fixture-decoding helper, not by the
+installed product. The fixture JSON retains the exact original source/member/
+size/hash bindings; no BAM rewriting or reindexing is performed. The existing
+informative junction fixture has intentionally case-ambiguous header names,
+so use its focused junction command rather than the default-five report.
+
+For real inputs:
 
 ```sh
 rsomics-rnaseq-qc report --bam sample.bam --genes genes.bed12 --out sample-qc
@@ -96,8 +144,12 @@ These earlier runs do not qualify the added junction workflow. Its source
 fixture authority is the separately adopted six-call RSeQC 5.0.5 run
 `41277337904/1` at `b4cde25cde7a7d52d4b3947004929991b897a727`;
 captured data and per-file provenance are in `tests/fixtures/junctions`.
-New four-platform qualification and full-input junction performance remain
-separate pending gates; no earlier timings are inherited by this addition.
+Current-owner sourcea618e6ab is separately qualified on all four native classes
+by [41282068281](https://github.com/omics-rust/rsomics-world/actions/runs/41282068281):
+12 tests per debug/release profile, captured ordered junction outputs and
+default-five integration. This is a source/native correctness gate, not a
+claim that Python ran on every target or that an earlier timing measures the
+new addition.
 
 Whole-input performance run
 [40592936910](https://github.com/omics-rust/rsomics-world/actions/runs/40592936910)
@@ -110,8 +162,30 @@ is 21.11% lower at one worker. Native uses more output blocks; this is not a
 cold-I/O, universal-dataset or linear-scaling claim. Real-input Mac/Linux TIN
 rounding differs within the fixed numeric bound, unlike the synthetic fixtures'
 byte equality. Original measurements and their exact binary remain separately
-identified; later code does not inherit a benchmark by name alone.
+identified; the measured old executable is
+`48091abdb22d5d91e18a733848798b8a9ae3dd83d3d8117dd77feca08fd13707`.
+Later code does not inherit a benchmark by name alone.
 
-Registry adoption of the tested pileup foundation and final publication review
-remain required before release. The candidate stays unpublished. See
-[MERGE_RECORD.md](MERGE_RECORD.md) for behavior and implementation provenance.
+The separate complete-junction run
+[41291319388](https://github.com/omics-rust/rsomics-world/actions/runs/41291319388)
+is root-adopted for current sourcea618e6ab and measured Linux executable
+`eb472af80dfa26a00819448f895ccbcceb570de3ad629ac81f9507c7534282ae`.
+All9,810,963 original records and58,384 annotation rows are retained; all
+66,283 ordered source junction rows/counters and native repeat/worker output
+bytes match. Median source/native1/native4 wall is17.338/2.973/1.451s on that
+same warm-input Linux workload. Native1/source wall ratio is.1715 and median
+process peak RSS is46.3MB versus111.2MB. Four workers improve wall2.05x but
+use more CPU than one worker (4.362 versus2.963 CPU-seconds); native scientific
+outputs are12.73MB versus2.52MB source output. This is not lower output-volume,
+cold-cache, aggregate/heap-RSS or universal/linear-scaling evidence. Do not sum
+the historical five-metric timing and this separate junction timing into an
+unmeasured six-metric pipeline. Fresh delivery binaries are identified in
+BUILD.json and are not relabelled as either historical measured executable.
+
+Fragments, bias, duplication, saturation/junction saturation, bigWig ingress,
+Picard/refFlat/rRNA profiles, SAM/CRAM ingress, R/PDF/HTML rendering and junction
+BED/Interact exports remain outside this release. GitHub source/native delivery
+does not remove the separate tested-foundation/registry/publication gates.
+See [MERGE_RECORD.md](MERGE_RECORD.md) for historical behavior and merge
+provenance and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the actual
+dependency notice inventory and explicitly labelled team-owned supplements.

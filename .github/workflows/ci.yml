@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  native:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x86_64
+            runner: ubuntu-24.04
+            host: x86_64-unknown-linux-gnu
+          - target: linux-aarch64
+            runner: ubuntu-24.04-arm
+            host: aarch64-unknown-linux-gnu
+          - target: macos-x86_64
+            runner: macos-15-intel
+            host: x86_64-apple-darwin
+          - target: macos-aarch64
+            runner: macos-15
+            host: aarch64-apple-darwin
+    env:
+      CARGO_BUILD_JOBS: '2'
+      PYTHONDONTWRITEBYTECODE: '1'
+      NATIVE_TARGET: ${{ matrix.target }}
+      EXPECTED_HOST: ${{ matrix.host }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Initialize runner paths
+        run: |
+          set -euo pipefail
+          for setting in CARGO_HOME:cargo-home CARGO_TARGET_DIR:cargo-target RUSTUP_HOME:rustup-home TMPDIR:tmp XDG_CACHE_HOME:cache; do
+            key=${setting%%:*}
+            directory="$RUNNER_TEMP/${setting#*:}"
+            mkdir -p "$directory"
+            printf '%s=%s\n' "$key" "$directory" >> "$GITHUB_ENV"
+          done
+      - uses: dtolnay/rust-toolchain@1.91.0
+        with:
+          components: clippy,rustfmt
+      - name: Verify native compiler and target
+        run: |
+          set -euo pipefail
+          rustc -vV
+          test "$(rustc -vV | sed -n 's/^host: //p')" = "$EXPECTED_HOST"
+          cargo metadata --locked --no-deps --format-version 1 | python3 -B -c \
+            'import json,os,sys; assert json.load(sys.stdin)["target_directory"] == os.environ["CARGO_TARGET_DIR"]'
+      - name: Format and strict Clippy
+        if: matrix.target == 'linux-x86_64'
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --locked --all-targets --all-features -- -D warnings
+      - name: Test debug
+        run: cargo test --locked --all-targets --all-features
+      - name: Test release
+        run: cargo test --release --locked --all-targets --all-features
+      - name: Check documentation
+        if: matrix.target == 'linux-x86_64'
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --locked --no-deps --all-features
+      - name: Assemble and verify exact Git source TAR
+        run: python3 -B scripts/delivery.py source
+      - name: Test extracted source release
+        run: cargo test --manifest-path "$SOURCE_DIRECTORY/Cargo.toml" --release --locked --all-targets --all-features
+      - name: Install actual extracted source and exercise the binary
+        run: |
+          set -euo pipefail
+          cargo install --path "$SOURCE_DIRECTORY" --locked --root "$RUNNER_TEMP/installed"
+          python3 -B "$SOURCE_DIRECTORY/scripts/delivery.py" smoke --binary "$RUNNER_TEMP/installed/bin/rsomics-rnaseq-qc"
+      - name: Assemble complete native delivery
+        run: python3 -B "$SOURCE_DIRECTORY/scripts/delivery.py" bundle --binary "$RUNNER_TEMP/installed/bin/rsomics-rnaseq-qc"
+      - name: Upload source native and lifecycle originals
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rsomics-rnaseq-qc-${{ matrix.target }}-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/delivery/*.tar
+            ${{ runner.temp }}/delivery/*.tar.gz
+            ${{ runner.temp }}/delivery/SHA256SUMS
+            ${{ runner.temp }}/delivery/native-dependencies*
+            ${{ runner.temp }}/delivery/lifecycle/
+          if-no-files-found: error
+          retention-days: 30
