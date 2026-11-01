@@ -1,0 +1,67 @@
+{
+  "derived_policy": {
+    "N_events": [],
+    "annotation_sites": {
+      "acceptors": [
+        [
+          "CHR1",
+          170
+        ],
+        [
+          "CHR1",
+          270
+        ],
+        [
+          "CHR1",
+          470
+        ]
+      ],
+      "donors": [
+        [
+          "CHR1",
+          120
+        ],
+        [
+          "CHR1",
+          220
+        ],
+        [
+          "CHR1",
+          420
+        ]
+      ]
+    },
+    "distinct": {
+      "annotated": 0,
+      "complete_novel": 0,
+      "partial_novel": 0,
+      "total": 0
+    },
+    "events": {
+      "annotated": 0,
+      "complete_novel": 0,
+      "filtered": 0,
+      "partial_novel": 0,
+      "total": 0
+    },
+    "rows": [],
+    "scope": "independent policy derivation, not an observed source result"
+  },
+  "inputs": {
+    "genes.bed12": {
+      "bytes": 270,
+      "sha256": "0c844c495c122d3e0673070627a375f7b81f7793b20ce1f0080d0ae3f3162b69"
+    },
+    "input.bam": {
+      "bytes": 321,
+      "sha256": "1ea11910c965d9b0b6d7ccb03431759e1074926b618f48134691a68aff9ee11d"
+    },
+    "input.sam": {
+      "bytes": 176,
+      "sha256": "cb0d2644ab6ec9c2fb379f26800ff8af29a8bd3b9a36d6c854ade839c5be04d0"
+    }
+  },
+  "sorted_sam_records": [
+    "no-N\t0\tchr1\t101\t30\t40M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII"
+  ]
+}

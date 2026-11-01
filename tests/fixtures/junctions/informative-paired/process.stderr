@@ -1,0 +1,16 @@
+Reading reference bed file:  /__w/_temp/rnaseq-junctions-n2hxf3jn/private/inputs/informative-paired/genes.bed12  ...  Done
+Load BAM file ...  Done
+
+===================================================================
+Total splicing  Events:	22
+Known Splicing Events:	12
+Partial Novel Splicing Events:	2
+Novel Splicing Events:	6
+Filtered Splicing Events:	2
+
+Total splicing  Junctions:	6
+Known Splicing Junctions:	2
+Partial Novel Splicing Junctions:	1
+Novel Splicing Junctions:	3
+
+===================================================================

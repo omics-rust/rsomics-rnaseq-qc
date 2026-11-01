@@ -2,12 +2,15 @@
 
 Private, unpublished candidate for one coordinated RNA-seq QC workflow. The
 declared slice is `report`, `mapping`, `strandedness`, `distribution`, `coverage`,
-and `integrity`; later metrics are not exposed.
+`integrity`, and `junctions`; later metrics are not exposed. The default report
+keeps the established five metrics. Junctions requires explicit selection.
 
 ```sh
 rsomics-rnaseq-qc report --bam sample.bam --genes genes.bed12 --out sample-qc
 rsomics-rnaseq-qc report --bam sample.bam --genes genes.bed12 --out legacy-qc --profile rseqc-5.0.5
 rsomics-rnaseq-qc integrity --bam sample.bam --genes genes.bed12 --out sample-tin
+rsomics-rnaseq-qc junctions --bam sample.bam --genes genes.bed12 --out sample-junctions --profile rseqc-5.0.5
+rsomics-rnaseq-qc report --bam sample.bam --genes genes.bed12 --out sample-qc --metrics mapping,strandedness,distribution,coverage,integrity,junctions
 ```
 
 Input is one coordinate-sorted BAM and validated BED12 annotation. No BAM index
@@ -18,6 +21,35 @@ default. Record-level metrics observe the original records. The existing
 `rsomics-pileup` engine supplies separate pileup filtering and paired-overlap
 quality adjustment. Focused commands select
 the same accumulators; `mapping` may omit `--genes`.
+
+Junctions observes each original record before pileup filtering or ownership
+transfer, excludes flags `0x704` and MAPQ below `--mapq` (default 30), and retains
+supplementary alignments. Each N occurrence is one event, including each mate;
+total events include N operations shorter than `--min-intron` (positive,
+default 50). Accepted junctions retain first BAM encounter order and per-event
+support. Donor and acceptor knownness are independent annotation-site queries,
+not intron-pair or strand membership. `junctions.tsv` contains every distinct
+accepted junction; `junctions-summary.tsv` contains all nine event/distinct
+counters. Both coordinates are zero-based interbase boundaries, with the
+intron represented as `[intron_start,intron_end)`.
+
+Canonical junctions uses exact contig identities and advances reference for
+M/D/N/=/X, never soft clips. Explicit `rseqc-5.0.5` junctions advances only
+M/D/N, pools uppercase contig identities, and displays every `CHR` substring
+as `chr`. This differs from legacy distribution, which advances soft clips.
+Both profiles still require strict valid BED12 and exact annotation contigs in
+the BAM header. Distribution retains its separate rejection of ambiguous
+case-normalized header names; select `--metrics mapping,junctions` for a
+junction report on an otherwise admitted `chr1`/`CHR1` header. Junction
+accumulation is serial on the shared record stream; workers accelerate BGZF
+inflation, not a claimed parallel junction scan. Focused junctions initializes
+no pileup or transcript-query replay context.
+
+Valid no-N or all-short inputs produce complete atomic zero-result tables,
+accurate total/filtered counters and exit 0. This intentionally differs from
+RSeQC 5.0.5, whose captured no-N call leaves empty files and whose all-short
+call exits 1 with partial files. Native R/PDF, BED/Interact exports, SAM/CRAM
+ingress and junction saturation are not implemented or exposed.
 
 `canonical` is the default distribution policy: correct full-CIGAR geometry and
 half-open point membership. Explicit `rseqc-5.0.5` retains the pinned source's
@@ -53,13 +85,19 @@ unsorted mapped records, and malformed paired-segment identities fail loudly.
 BED rows retain their order and repeated gene names; TIN retains repeated rows,
 while coverage deduplicates the source's full transcript identity.
 
-The source-query implementation passes hosted native Linux/macOS x86_64/aarch64
+The earlier five-metric source-query candidate passed hosted native Linux/macOS x86_64/aarch64
 formatting, strict Clippy, and 11 tests in debug and release. Runs
 [40590326515](https://github.com/omics-rust/rsomics-world/actions/runs/40590326515)
 and [40597129172](https://github.com/omics-rust/rsomics-world/actions/runs/40597129172)
 compare all five metrics with actual RSeQC single/paired semantic fixtures at
 one and four workers. The latter changes only shared thread-argument plumbing.
 Those synthetic report bytes agree across platforms and workers.
+These earlier runs do not qualify the added junction workflow. Its source
+fixture authority is the separately adopted six-call RSeQC 5.0.5 run
+`41277337904/1` at `b4cde25cde7a7d52d4b3947004929991b897a727`;
+captured data and per-file provenance are in `tests/fixtures/junctions`.
+New four-platform qualification and full-input junction performance remain
+separate pending gates; no earlier timings are inherited by this addition.
 
 Whole-input performance run
 [40592936910](https://github.com/omics-rust/rsomics-world/actions/runs/40592936910)

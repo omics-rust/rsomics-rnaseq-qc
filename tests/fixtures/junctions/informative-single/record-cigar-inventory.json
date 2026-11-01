@@ -1,0 +1,390 @@
+{
+  "derived_policy": {
+    "N_events": [
+      {
+        "accepted": true,
+        "acceptor_known": true,
+        "annotation": "annotated",
+        "chrom": "CHR1",
+        "cigar": "20M50N20M",
+        "cigar_index": 1,
+        "donor_known": true,
+        "eligible_record": true,
+        "end": 170,
+        "exact_chrom": "chr1",
+        "flag": 0,
+        "length": 50,
+        "mapq": 30,
+        "minimum_pass": true,
+        "name": "known",
+        "start": 120
+      },
+      {
+        "accepted": true,
+        "acceptor_known": true,
+        "annotation": "annotated",
+        "chrom": "CHR1",
+        "cigar": "20M150N20M",
+        "cigar_index": 1,
+        "donor_known": true,
+        "eligible_record": true,
+        "end": 270,
+        "exact_chrom": "chr1",
+        "flag": 0,
+        "length": 150,
+        "mapq": 60,
+        "minimum_pass": true,
+        "name": "independent-sites-new-pair",
+        "start": 120
+      },
+      {
+        "accepted": true,
+        "acceptor_known": false,
+        "annotation": "partial_novel",
+        "chrom": "CHR1",
+        "cigar": "20M51N20M",
+        "cigar_index": 1,
+        "donor_known": true,
+        "eligible_record": true,
+        "end": 171,
+        "exact_chrom": "chr1",
+        "flag": 0,
+        "length": 51,
+        "mapq": 60,
+        "minimum_pass": true,
+        "name": "partial",
+        "start": 120
+      },
+      {
+        "chrom": "CHR1",
+        "cigar": "20M49N20M",
+        "cigar_index": 1,
+        "eligible_record": true,
+        "end": 169,
+        "exact_chrom": "chr1",
+        "flag": 0,
+        "length": 49,
+        "mapq": 60,
+        "minimum_pass": false,
+        "name": "short",
+        "start": 120
+      },
+      {
+        "accepted": true,
+        "acceptor_known": true,
+        "annotation": "annotated",
+        "chrom": "CHR1",
+        "cigar": "20M50N20M50N20M",
+        "cigar_index": 1,
+        "donor_known": true,
+        "eligible_record": true,
+        "end": 170,
+        "exact_chrom": "chr1",
+        "flag": 0,
+        "length": 50,
+        "mapq": 60,
+        "minimum_pass": true,
+        "name": "multiple-N",
+        "start": 120
+      },
+      {
+        "accepted": true,
+        "acceptor_known": false,
+        "annotation": "complete_novel",
+        "chrom": "CHR1",
+        "cigar": "20M50N20M50N20M",
+        "cigar_index": 3,
+        "donor_known": false,
+        "eligible_record": true,
+        "end": 240,
+        "exact_chrom": "chr1",
+        "flag": 0,
+        "length": 50,
+        "mapq": 60,
+        "minimum_pass": true,
+        "name": "multiple-N",
+        "start": 190
+      },
+      {
+        "chrom": "CHR1",
+        "cigar": "20M50N20M",
+        "cigar_index": 1,
+        "eligible_record": false,
+        "end": 170,
+        "exact_chrom": "chr1",
+        "flag": 256,
+        "length": 50,
+        "mapq": 60,
+        "minimum_pass": true,
+        "name": "secondary",
+        "start": 120
+      },
+      {
+        "chrom": "CHR1",
+        "cigar": "20M50N20M",
+        "cigar_index": 1,
+        "eligible_record": false,
+        "end": 170,
+        "exact_chrom": "chr1",
+        "flag": 512,
+        "length": 50,
+        "mapq": 60,
+        "minimum_pass": true,
+        "name": "qcfail",
+        "start": 120
+      },
+      {
+        "chrom": "CHR1",
+        "cigar": "20M50N20M",
+        "cigar_index": 1,
+        "eligible_record": false,
+        "end": 170,
+        "exact_chrom": "chr1",
+        "flag": 1024,
+        "length": 50,
+        "mapq": 60,
+        "minimum_pass": true,
+        "name": "duplicate",
+        "start": 120
+      },
+      {
+        "chrom": "CHR1",
+        "cigar": "20M50N20M",
+        "cigar_index": 1,
+        "eligible_record": false,
+        "end": 170,
+        "exact_chrom": "chr1",
+        "flag": 1796,
+        "length": 50,
+        "mapq": 60,
+        "minimum_pass": true,
+        "name": "excluded-combined",
+        "start": 120
+      },
+      {
+        "accepted": true,
+        "acceptor_known": true,
+        "annotation": "annotated",
+        "chrom": "CHR1",
+        "cigar": "20M50N20M",
+        "cigar_index": 1,
+        "donor_known": true,
+        "eligible_record": true,
+        "end": 170,
+        "exact_chrom": "chr1",
+        "flag": 2048,
+        "length": 50,
+        "mapq": 60,
+        "minimum_pass": true,
+        "name": "supplementary",
+        "start": 120
+      },
+      {
+        "chrom": "CHR1",
+        "cigar": "20M50N20M",
+        "cigar_index": 1,
+        "eligible_record": false,
+        "end": 170,
+        "exact_chrom": "chr1",
+        "flag": 0,
+        "length": 50,
+        "mapq": 29,
+        "minimum_pass": true,
+        "name": "mapq29",
+        "start": 120
+      },
+      {
+        "accepted": true,
+        "acceptor_known": true,
+        "annotation": "annotated",
+        "chrom": "CHR1",
+        "cigar": "20M50N20M",
+        "cigar_index": 1,
+        "donor_known": true,
+        "eligible_record": true,
+        "end": 170,
+        "exact_chrom": "chr1",
+        "flag": 16,
+        "length": 50,
+        "mapq": 255,
+        "minimum_pass": true,
+        "name": "repeated",
+        "start": 120
+      },
+      {
+        "accepted": true,
+        "acceptor_known": false,
+        "annotation": "complete_novel",
+        "chrom": "CHR1",
+        "cigar": "20M50N20M",
+        "cigar_index": 1,
+        "donor_known": false,
+        "eligible_record": true,
+        "end": 370,
+        "exact_chrom": "chr1",
+        "flag": 0,
+        "length": 50,
+        "mapq": 60,
+        "minimum_pass": true,
+        "name": "novel",
+        "start": 320
+      },
+      {
+        "accepted": true,
+        "acceptor_known": false,
+        "annotation": "complete_novel",
+        "chrom": "CHR1",
+        "cigar": "5H3S10M2I5M3D4M2P5=3X50N20M4S2H",
+        "cigar_index": 10,
+        "donor_known": false,
+        "eligible_record": true,
+        "end": 572,
+        "exact_chrom": "chr1",
+        "flag": 0,
+        "length": 50,
+        "mapq": 60,
+        "minimum_pass": true,
+        "name": "mixed",
+        "start": 522
+      },
+      {
+        "accepted": true,
+        "acceptor_known": true,
+        "annotation": "annotated",
+        "chrom": "CHR1",
+        "cigar": "20M50N20M",
+        "cigar_index": 1,
+        "donor_known": true,
+        "eligible_record": true,
+        "end": 170,
+        "exact_chrom": "CHR1",
+        "flag": 0,
+        "length": 50,
+        "mapq": 60,
+        "minimum_pass": true,
+        "name": "case-pooling",
+        "start": 120
+      }
+    ],
+    "annotation_sites": {
+      "acceptors": [
+        [
+          "CHR1",
+          170
+        ],
+        [
+          "CHR1",
+          270
+        ],
+        [
+          "CHR1",
+          470
+        ]
+      ],
+      "donors": [
+        [
+          "CHR1",
+          120
+        ],
+        [
+          "CHR1",
+          220
+        ],
+        [
+          "CHR1",
+          420
+        ]
+      ]
+    },
+    "distinct": {
+      "annotated": 2,
+      "complete_novel": 3,
+      "partial_novel": 1,
+      "total": 6
+    },
+    "events": {
+      "annotated": 6,
+      "complete_novel": 3,
+      "filtered": 1,
+      "partial_novel": 1,
+      "total": 11
+    },
+    "rows": [
+      {
+        "annotation": "annotated",
+        "chrom": "chr1",
+        "end": 170,
+        "read_count": 5,
+        "start": 120
+      },
+      {
+        "annotation": "annotated",
+        "chrom": "chr1",
+        "end": 270,
+        "read_count": 1,
+        "start": 120
+      },
+      {
+        "annotation": "partial_novel",
+        "chrom": "chr1",
+        "end": 171,
+        "read_count": 1,
+        "start": 120
+      },
+      {
+        "annotation": "complete_novel",
+        "chrom": "chr1",
+        "end": 240,
+        "read_count": 1,
+        "start": 190
+      },
+      {
+        "annotation": "complete_novel",
+        "chrom": "chr1",
+        "end": 370,
+        "read_count": 1,
+        "start": 320
+      },
+      {
+        "annotation": "complete_novel",
+        "chrom": "chr1",
+        "end": 572,
+        "read_count": 1,
+        "start": 522
+      }
+    ],
+    "scope": "independent policy derivation, not an observed source result"
+  },
+  "inputs": {
+    "genes.bed12": {
+      "bytes": 270,
+      "sha256": "0c844c495c122d3e0673070627a375f7b81f7793b20ce1f0080d0ae3f3162b69"
+    },
+    "input.bam": {
+      "bytes": 687,
+      "sha256": "9a6abf7d6bef6a51546d4a6369e1ed008118dffdd0e263af9201b78cbd23f420"
+    },
+    "input.sam": {
+      "bytes": 2126,
+      "sha256": "2bd1d5086cc0125078e3bd0b6cd6a6bb5f6b0a50528a3555c4a7fd5980c310d5"
+    }
+  },
+  "sorted_sam_records": [
+    "known\t0\tchr1\t101\t30\t20M50N20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+    "independent-sites-new-pair\t0\tchr1\t101\t60\t20M150N20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+    "partial\t0\tchr1\t101\t60\t20M51N20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+    "short\t0\tchr1\t101\t60\t20M49N20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+    "multiple-N\t0\tchr1\t101\t60\t20M50N20M50N20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+    "secondary\t256\tchr1\t101\t60\t20M50N20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+    "qcfail\t512\tchr1\t101\t60\t20M50N20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+    "duplicate\t1024\tchr1\t101\t60\t20M50N20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+    "excluded-combined\t1796\tchr1\t101\t60\t20M50N20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+    "supplementary\t2048\tchr1\t101\t60\t20M50N20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+    "mapq29\t0\tchr1\t101\t29\t20M50N20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+    "repeated\t16\tchr1\t101\t255\t20M50N20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+    "novel\t0\tchr1\t301\t60\t20M50N20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+    "mixed\t0\tchr1\t501\t60\t5H3S10M2I5M3D4M2P5=3X50N20M4S2H\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+    "case-pooling\t0\tCHR1\t101\t60\t20M50N20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+    "unmapped\t4\t*\t0\t0\t*\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII"
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "case": "informative-single",
+  "cgroup_after": {
+    "cpu.max": "400000 100000",
+    "memory.current": "1766498304",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+    "memory.max": "8589934592",
+    "memory.peak": "1866162176",
+    "memory.swap.max": "0"
+  },
+  "counters": {
+    "Filtered Splicing Events": [
+      1
+    ],
+    "Known Splicing Events": [
+      6
+    ],
+    "Known Splicing Junctions": [
+      2
+    ],
+    "Novel Splicing Events": [
+      3
+    ],
+    "Novel Splicing Junctions": [
+      3
+    ],
+    "Partial Novel Splicing Events": [
+      1
+    ],
+    "Partial Novel Splicing Junctions": [
+      1
+    ],
+    "Total splicing  Events": [
+      11
+    ],
+    "Total splicing  Junctions": [
+      6
+    ]
+  },
+  "expected_anomaly": null,
+  "files": {
+    "observed.junction.xls": {
+      "bytes": 242,
+      "sha256": "722b03f128c55d7898d97af41757a063ee2ebf18e3d4b123114a8ae1c512342d"
+    },
+    "observed.junction_plot.r": {
+      "bytes": 698,
+      "sha256": "230faf8b540a6d2bb60c27fa10e86302fa07d61f1a90f28dd6b584022687153a"
+    }
+  },
+  "name": "informative-single",
+  "raw_returncode": 0,
+  "rows": [
+    {
+      "annotation": "annotated",
+      "chrom": "chr1",
+      "end": 170,
+      "read_count": 5,
+      "start": 120
+    },
+    {
+      "annotation": "annotated",
+      "chrom": "chr1",
+      "end": 270,
+      "read_count": 1,
+      "start": 120
+    },
+    {
+      "annotation": "partial_novel",
+      "chrom": "chr1",
+      "end": 171,
+      "read_count": 1,
+      "start": 120
+    },
+    {
+      "annotation": "complete_novel",
+      "chrom": "chr1",
+      "end": 240,
+      "read_count": 1,
+      "start": 190
+    },
+    {
+      "annotation": "complete_novel",
+      "chrom": "chr1",
+      "end": 370,
+      "read_count": 1,
+      "start": 320
+    },
+    {
+      "annotation": "complete_novel",
+      "chrom": "chr1",
+      "end": 572,
+      "read_count": 1,
+      "start": 522
+    }
+  ],
+  "status": "observed-qualified"
+}

@@ -60,6 +60,23 @@ pub(crate) fn write(inputs: &Inputs, report: &Report, mut manifest: Manifest) ->
         outputs.push(("integrity.tsv", table));
         outputs.push(("integrity-summary.tsv", flat_table(&integrity.summary)?));
     }
+    if let Some(junctions) = &report.junctions {
+        let mut table = b"chrom\tintron_start\tintron_end\tread_count\tannotation\n".to_vec();
+        for row in &junctions.rows {
+            writeln!(
+                table,
+                "{}\t{}\t{}\t{}\t{}",
+                row.chrom,
+                row.start,
+                row.end,
+                row.read_count,
+                row.annotation.name()
+            )
+            .map_err(RsomicsError::Io)?;
+        }
+        outputs.push(("junctions.tsv", table));
+        outputs.push(("junctions-summary.tsv", flat_table(&junctions.counts)?));
+    }
     manifest.outputs = outputs
         .iter()
         .map(|(name, bytes)| OutputIdentity {

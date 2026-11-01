@@ -1,0 +1,10 @@
+Reading reference bed file:  /__w/_temp/rnaseq-junctions-n2hxf3jn/private/inputs/all-short/genes.bed12  ...  Done
+Load BAM file ...  Done
+
+===================================================================
+Total splicing  Events:	1
+Known Splicing Events:	0
+Partial Novel Splicing Events:	0
+Novel Splicing Events:	0
+Filtered Splicing Events:	1
+No splice read found

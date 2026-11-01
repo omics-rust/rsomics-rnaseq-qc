@@ -1,0 +1,37 @@
+{
+  "case": "no-N",
+  "cgroup_after": {
+    "cpu.max": "400000 100000",
+    "memory.current": "1766944768",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+    "memory.max": "8589934592",
+    "memory.peak": "1866162176",
+    "memory.swap.max": "0"
+  },
+  "counters": {
+    "Filtered Splicing Events": [],
+    "Known Splicing Events": [],
+    "Known Splicing Junctions": [],
+    "Novel Splicing Events": [],
+    "Novel Splicing Junctions": [],
+    "Partial Novel Splicing Events": [],
+    "Partial Novel Splicing Junctions": [],
+    "Total splicing  Events": [],
+    "Total splicing  Junctions": []
+  },
+  "expected_anomaly": "no-N",
+  "files": {
+    "observed.junction.xls": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "observed.junction_plot.r": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "name": "no-N",
+  "raw_returncode": 0,
+  "rows": [],
+  "status": "observed-qualified"
+}

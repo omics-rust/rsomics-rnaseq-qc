@@ -369,3 +369,402 @@ fn placed_unmapped_coordinates_do_not_advance_source_query_windows() {
         baseline = Some(bytes);
     }
 }
+
+#[test]
+fn junctions_match_captured_source_and_share_the_original_record_transaction() {
+    let dir = tempfile::tempdir().unwrap();
+    let fixtures = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/junctions");
+    let run = |case: &str, name: &str, operation: &str, extra: &[&str]| {
+        let out = dir.path().join(name);
+        let mut command = Command::new(env!("CARGO_BIN_EXE_rsomics-rnaseq-qc"));
+        command
+            .arg(operation)
+            .arg("--bam")
+            .arg(fixtures.join(case).join("input.bam"))
+            .arg("--genes")
+            .arg(fixtures.join(case).join("genes.bed12"))
+            .arg("--out")
+            .arg(&out);
+        if !extra.contains(&"--profile") {
+            command.args(["--profile", "rseqc-5.0.5"]);
+        }
+        if !extra.contains(&"--threads") {
+            command.args(["--threads", "1"]);
+        }
+        let result = command.args(extra).output().unwrap();
+        (out, result)
+    };
+    let load = |out: &Path, file| -> Value {
+        serde_json::from_slice(&fs::read(out.join(file)).unwrap()).unwrap()
+    };
+    let assert_ok = |result: &std::process::Output| {
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+    };
+    let counter_names = [
+        ("total_events", "Total splicing  Events"),
+        ("known_events", "Known Splicing Events"),
+        ("partial_novel_events", "Partial Novel Splicing Events"),
+        ("novel_events", "Novel Splicing Events"),
+        ("filtered_events", "Filtered Splicing Events"),
+        ("total_junctions", "Total splicing  Junctions"),
+        ("known_junctions", "Known Splicing Junctions"),
+        (
+            "partial_novel_junctions",
+            "Partial Novel Splicing Junctions",
+        ),
+        ("novel_junctions", "Novel Splicing Junctions"),
+    ];
+    for (case, records) in [("informative-single", 16), ("informative-paired", 30)] {
+        let expected: Value = serde_json::from_slice(
+            &fs::read(fixtures.join(case).join("observation.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(expected["raw_returncode"], 0);
+        let stderr = fs::read_to_string(fixtures.join(case).join("process.stderr")).unwrap();
+        for (_, label) in counter_names {
+            let observed = stderr
+                .lines()
+                .find_map(|line| {
+                    let (name, value) = line.split_once(':')?;
+                    (name == label).then(|| value.trim().parse::<u64>().unwrap())
+                })
+                .unwrap();
+            assert_eq!(expected["counters"][label][0], observed);
+        }
+        let source_rows: Vec<Vec<String>> =
+            fs::read_to_string(fixtures.join(case).join("observed.junction.xls"))
+                .unwrap()
+                .lines()
+                .skip(1)
+                .map(|line| line.split_ascii_whitespace().map(str::to_owned).collect())
+                .collect();
+        let mut baseline = None;
+        for workers in ["1", "4"] {
+            let name = format!("{case}-{workers}");
+            let (out, result) = run(case, &name, "junctions", &["--threads", workers]);
+            assert_ok(&result);
+            let report = load(&out, "report.json");
+            assert_eq!(report["metrics"], serde_json::json!(["junctions"]));
+            assert!(report.get("mapping").is_none());
+            assert_eq!(report["junctions"]["rows"], expected["rows"]);
+            for (native, source) in counter_names {
+                assert_eq!(
+                    report["junctions"]["counts"][native],
+                    expected["counters"][source][0]
+                );
+            }
+            let detail = fs::read_to_string(out.join("junctions.tsv")).unwrap();
+            let rows: Vec<Vec<String>> = detail
+                .lines()
+                .skip(1)
+                .map(|line| line.split_ascii_whitespace().map(str::to_owned).collect())
+                .collect();
+            assert_eq!(rows, source_rows);
+            let summary = fs::read_to_string(out.join("junctions-summary.tsv")).unwrap();
+            assert_eq!(summary.lines().count(), 10);
+            for line in summary.lines().skip(1) {
+                let (metric, value) = line.split_once('\t').unwrap();
+                assert_eq!(
+                    report["junctions"]["counts"][metric],
+                    value.parse::<u64>().unwrap()
+                );
+            }
+            let manifest = load(&out, "manifest.json");
+            assert_eq!(manifest["original_records"], records);
+            assert_eq!(manifest["bam_traversals"], 1);
+            assert_eq!(
+                manifest["inflate_workers"],
+                workers.parse::<usize>().unwrap()
+            );
+            assert_eq!(manifest["policy"]["junctions"]["excluded_flags"], 0x704);
+            assert_eq!(manifest["policy"]["junctions"]["minimum_mapq"], 30);
+            assert_eq!(manifest["policy"]["junctions"]["minimum_intron"], 50);
+            assert!(
+                !manifest["omitted_metrics"]
+                    .as_array()
+                    .unwrap()
+                    .contains(&serde_json::json!("junctions"))
+            );
+            for name in ["junctions.tsv", "junctions-summary.tsv"] {
+                let identity = manifest["outputs"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .find(|row| row["path"] == name)
+                    .unwrap();
+                let body = fs::read(out.join(name)).unwrap();
+                use sha2::{Digest, Sha256};
+                assert_eq!(identity["sha256"], format!("{:x}", Sha256::digest(&body)));
+                assert_eq!(identity["bytes"], body.len());
+            }
+            let bytes = fs::read(out.join("report.json")).unwrap();
+            if let Some(previous) = &baseline {
+                assert_eq!(&bytes, previous);
+            }
+            baseline = Some(bytes);
+            let (full, result) = run(
+                case,
+                &format!("{case}-report-{workers}"),
+                "report",
+                &["--threads", workers, "--metrics", "mapping,junctions"],
+            );
+            assert_ok(&result);
+            let full = load(&full, "report.json");
+            assert_eq!(full["junctions"], report["junctions"]);
+            let (default, result) = run(
+                case,
+                &format!("{case}-standard-{workers}"),
+                "report",
+                &["--threads", workers],
+            );
+            assert!(!result.status.success());
+            assert!(
+                String::from_utf8_lossy(&result.stderr).contains("unambiguous case-normalized")
+            );
+            assert!(!default.join("manifest.json").exists());
+        }
+    }
+    let bam = dir.path().join("shared-stream.bam");
+    let genes = dir.path().join("shared-stream.bed12");
+    fs::write(&genes, BED).unwrap();
+    write_bam(
+        &bam,
+        &format!(
+            "a\t0\tchr1\t381\t60\t20M600N20M\t*\t0\t0\t{}\t{}\nb\t2048\tchr1\t381\t60\t20M600N20M\t*\t0\t0\t{}\t{}\nc\t0\tchr1\t401\t60\t10M590N20M\t*\t0\t0\t{}\t{}\n",
+            "A".repeat(40),
+            "I".repeat(40),
+            "A".repeat(40),
+            "I".repeat(40),
+            "A".repeat(30),
+            "I".repeat(30),
+        ),
+    );
+    for profile in ["canonical", "rseqc-5.0.5"] {
+        let mut baseline = None;
+        for workers in ["1", "4"] {
+            let execute = |name: &str, operation, extra: &[&str]| {
+                let out = dir
+                    .path()
+                    .join(format!("shared-{name}-{profile}-{workers}"));
+                let result = Command::new(env!("CARGO_BIN_EXE_rsomics-rnaseq-qc"))
+                    .arg(operation)
+                    .arg("--bam")
+                    .arg(&bam)
+                    .arg("--genes")
+                    .arg(&genes)
+                    .arg("--out")
+                    .arg(&out)
+                    .args([
+                        "--profile",
+                        profile,
+                        "--threads",
+                        workers,
+                        "--tin-min-starts",
+                        "0",
+                    ])
+                    .args(extra)
+                    .output()
+                    .unwrap();
+                assert_ok(&result);
+                (
+                    load(&out, "report.json"),
+                    fs::read(out.join("report.json")).unwrap(),
+                )
+            };
+            let (full, bytes) = execute(
+                "full",
+                "report",
+                &[
+                    "--metrics",
+                    "mapping,strandedness,distribution,coverage,integrity,junctions",
+                ],
+            );
+            let (default, _) = execute("standard", "report", &[]);
+            let (focused, _) = execute("focused", "junctions", &[]);
+            assert_eq!(full["junctions"], focused["junctions"]);
+            assert_eq!(full["junctions"]["counts"]["total_events"], 3);
+            assert_eq!(full["junctions"]["counts"]["known_events"], 2);
+            assert_eq!(full["junctions"]["counts"]["partial_novel_events"], 1);
+            assert_eq!(
+                full["junctions"]["rows"][1],
+                serde_json::json!({"chrom":"chr1","start":410,"end":1000,"read_count":1,"annotation":"partial_novel"})
+            );
+            assert!(default.get("junctions").is_none());
+            assert_eq!(default["metrics"].as_array().unwrap().len(), 5);
+            for metric in [
+                "mapping",
+                "strandedness",
+                "distribution",
+                "coverage",
+                "integrity",
+            ] {
+                assert_eq!(full[metric], default[metric]);
+            }
+            if let Some(previous) = &baseline {
+                assert_eq!(&bytes, previous);
+            }
+            baseline = Some(bytes);
+        }
+    }
+    let (canonical, result) = run(
+        "informative-single",
+        "canonical-junctions",
+        "junctions",
+        &["--profile", "canonical"],
+    );
+    assert_ok(&result);
+    let canonical = load(&canonical, "report.json");
+    let rows = canonical["junctions"]["rows"].as_array().unwrap();
+    assert_eq!(rows.len(), 7);
+    assert_eq!(
+        rows[5],
+        serde_json::json!({"chrom":"chr1","start":530,"end":580,"read_count":1,"annotation":"complete_novel"})
+    );
+    assert_eq!(
+        rows[6],
+        serde_json::json!({"chrom":"CHR1","start":120,"end":170,"read_count":1,"annotation":"complete_novel"})
+    );
+    assert_eq!(canonical["junctions"]["counts"]["known_events"], 5);
+    assert_eq!(canonical["junctions"]["counts"]["novel_events"], 4);
+    for profile in ["canonical", "rseqc-5.0.5"] {
+        let (out, result) = run(
+            "case-alias-only",
+            &format!("alias-{profile}"),
+            "junctions",
+            &["--profile", profile],
+        );
+        assert!(!result.status.success());
+        assert!(String::from_utf8_lossy(&result.stderr).contains("absent from the BAM header"));
+        assert!(!out.join("manifest.json").exists());
+        for (case, events, filtered, source_exit) in [("no-N", 0, 0, 0), ("all-short", 1, 1, 1)] {
+            let expected: Value = serde_json::from_slice(
+                &fs::read(fixtures.join(case).join("observation.json")).unwrap(),
+            )
+            .unwrap();
+            assert_eq!(expected["raw_returncode"], source_exit);
+            let (out, result) = run(
+                case,
+                &format!("{case}-{profile}"),
+                "junctions",
+                &["--profile", profile],
+            );
+            assert_ok(&result);
+            let report = load(&out, "report.json");
+            assert_eq!(report["junctions"]["rows"], serde_json::json!([]));
+            for (name, _) in counter_names {
+                let value = match name {
+                    "total_events" => events,
+                    "filtered_events" => filtered,
+                    _ => 0,
+                };
+                assert_eq!(report["junctions"]["counts"][name], value);
+            }
+            assert_eq!(
+                fs::read_to_string(out.join("junctions.tsv"))
+                    .unwrap()
+                    .lines()
+                    .count(),
+                1
+            );
+            assert_eq!(
+                fs::read_to_string(out.join("junctions-summary.tsv"))
+                    .unwrap()
+                    .lines()
+                    .count(),
+                10
+            );
+            assert_eq!(load(&out, "manifest.json")["status"], "complete");
+        }
+    }
+    let (out, result) = run(
+        "informative-single",
+        "selected",
+        "report",
+        &["--metrics", "junctions,mapping"],
+    );
+    assert_ok(&result);
+    let report = load(&out, "report.json");
+    assert_eq!(
+        report["metrics"],
+        serde_json::json!(["mapping", "junctions"])
+    );
+    assert!(report.get("coverage").is_none());
+    for (name, args) in [
+        ("zero-intron", vec!["--min-intron", "0"]),
+        ("focused-metrics", vec!["--metrics", "junctions"]),
+    ] {
+        assert!(
+            !run("informative-single", name, "junctions", &args)
+                .1
+                .status
+                .success()
+        );
+    }
+    assert!(
+        !run(
+            "informative-single",
+            "unknown-metric",
+            "report",
+            &["--metrics", "imaginary"]
+        )
+        .1
+        .status
+        .success()
+    );
+    let (out, result) = run(
+        "informative-single",
+        "mapq255",
+        "junctions",
+        &["--mapq", "255"],
+    );
+    assert_ok(&result);
+    assert_eq!(
+        load(&out, "report.json")["junctions"]["counts"]["total_events"],
+        1
+    );
+    let (out, result) = run(
+        "informative-single",
+        "min51",
+        "junctions",
+        &["--min-intron", "51"],
+    );
+    assert_ok(&result);
+    assert_eq!(
+        load(&out, "report.json")["junctions"]["counts"]["filtered_events"],
+        9
+    );
+    let out = dir.path().join("atomic");
+    fs::create_dir(&out).unwrap();
+    fs::write(out.join("report.json"), "original-report").unwrap();
+    fs::write(out.join("junctions.tsv"), "original-detail").unwrap();
+    fs::write(out.join("manifest.json"), "original-manifest").unwrap();
+    fs::create_dir(out.join("junctions-summary.tsv")).unwrap();
+    assert!(
+        !run(
+            "informative-single",
+            "atomic",
+            "report",
+            &["--metrics", "mapping,junctions"]
+        )
+        .1
+        .status
+        .success()
+    );
+    assert_eq!(
+        fs::read_to_string(out.join("report.json")).unwrap(),
+        "original-report"
+    );
+    assert_eq!(
+        fs::read_to_string(out.join("junctions.tsv")).unwrap(),
+        "original-detail"
+    );
+    assert_eq!(
+        fs::read_to_string(out.join("manifest.json")).unwrap(),
+        "original-manifest"
+    );
+    assert!(!out.join("mapping.tsv").exists());
+}

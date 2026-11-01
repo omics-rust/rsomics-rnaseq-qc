@@ -1,0 +1,98 @@
+{
+  "case": "informative-paired",
+  "cgroup_after": {
+    "cpu.max": "400000 100000",
+    "memory.current": "1766686720",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+    "memory.max": "8589934592",
+    "memory.peak": "1866162176",
+    "memory.swap.max": "0"
+  },
+  "counters": {
+    "Filtered Splicing Events": [
+      2
+    ],
+    "Known Splicing Events": [
+      12
+    ],
+    "Known Splicing Junctions": [
+      2
+    ],
+    "Novel Splicing Events": [
+      6
+    ],
+    "Novel Splicing Junctions": [
+      3
+    ],
+    "Partial Novel Splicing Events": [
+      2
+    ],
+    "Partial Novel Splicing Junctions": [
+      1
+    ],
+    "Total splicing  Events": [
+      22
+    ],
+    "Total splicing  Junctions": [
+      6
+    ]
+  },
+  "expected_anomaly": null,
+  "files": {
+    "observed.junction.xls": {
+      "bytes": 243,
+      "sha256": "e36897625cdd889096c2de6a7a3bddcdf254f9d12d3a15d8f7e5efc4fad09d4c"
+    },
+    "observed.junction_plot.r": {
+      "bytes": 698,
+      "sha256": "ce07935662df5e3fbe3e3dcec0c21d8073160cb85e54592cf08e2ed9207b804c"
+    }
+  },
+  "name": "informative-paired",
+  "raw_returncode": 0,
+  "rows": [
+    {
+      "annotation": "annotated",
+      "chrom": "chr1",
+      "end": 170,
+      "read_count": 10,
+      "start": 120
+    },
+    {
+      "annotation": "annotated",
+      "chrom": "chr1",
+      "end": 270,
+      "read_count": 2,
+      "start": 120
+    },
+    {
+      "annotation": "partial_novel",
+      "chrom": "chr1",
+      "end": 171,
+      "read_count": 2,
+      "start": 120
+    },
+    {
+      "annotation": "complete_novel",
+      "chrom": "chr1",
+      "end": 240,
+      "read_count": 2,
+      "start": 190
+    },
+    {
+      "annotation": "complete_novel",
+      "chrom": "chr1",
+      "end": 370,
+      "read_count": 2,
+      "start": 320
+    },
+    {
+      "annotation": "complete_novel",
+      "chrom": "chr1",
+      "end": 572,
+      "read_count": 2,
+      "start": 522
+    }
+  ],
+  "status": "observed-qualified"
+}

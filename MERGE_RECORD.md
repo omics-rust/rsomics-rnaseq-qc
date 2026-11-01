@@ -14,6 +14,7 @@ operation-sized crate. It has no product or path dependencies and remains
 | `rsomics-tin` `5e9fa05942c1ee999d87d475d3226638fa402c1a` | Reused exon-walk sampling idea; replaced source-disagreeing all-base dedup, entropy-zero handling, eligibility, summary population, and custom coverage scan |
 | `rsomics-bam-read-dist` `2f39541572ebe2b795cba10275498f17333080ca` | Reviewed as asset only; no majority-overlap implementation retained |
 | `rsomics-read-distribution` `e169e6c9b5ab8f1b6af64ea633134931102d1e58` | Reviewed as asset only; new shared annotation/midpoint logic follows the actual pinned source |
+| `rsomics-bam-junctions` `4f7a39cd1a69c7bae5a5c98393ed15bcb0acd62e` | Private classifier/count type seeds; refactored site indexing and N projection onto strict shared annotation/original records with ordered detail/support; discarded standalone reader/CLI/permissive parser and per-event chromosome allocations |
 
 The user confirmed ownership and permission to reuse these implementations.
 Their original repositories remain available on external storage. No upstream
@@ -59,6 +60,66 @@ Bioinformatics (2016), <https://doi.org/10.1186/s12864-016-2539-1>; RSeQC
 not a relicensing claim); SAM/BAM and BED12 specifications. The product's
 team-owned Rust code uses MIT OR Apache-2.0; no clean-room or certification
 claim is made.
+
+## Junction annotation addition
+
+The actual junction source chain is wheel
+`rseqc-5.0.5.data/scripts/junction_annotation.py` →
+`qcmodule/SAM.py:ParseBAM.annotate_junction` →
+`qcmodule/bam_cigar.py:fetch_intron`, not ParseSAM or the legacy distribution
+projection. Wheel script SHA-256 is
+`527d4ef87cab543a5e92f5438f16152bc79f8a5f35f25a15b6ccefd0aa09e03b`;
+SAM.py is `43727df48288f808159b1bf60c75db010a8e115359dd5280ddf3e0211944d5f5`;
+bam_cigar.py is `805777b0853595733630db164663036f15f0e62e2af201f244385c652eafa2b9`.
+The source TAR SHA-256 is
+`8c9d34c208bf7852f147dd365312a43a546148d1bf76581c5c0ede73fdb254b8`
+at the pinned upstream revision above. These source bodies were inspected as
+data; no upstream Python text is embedded or executed on the Mac.
+
+Root-adopted source run `41277337904/1`, exact head
+`b4cde25cde7a7d52d4b3947004929991b897a727`, artifact `13071489886`,
+contains six real invocations under freshly admitted CPython 3.12.10 and the
+unchanged 17 scientific dependency versions. Its world receipt
+`.autopilot/oracles/rnaseq-qc-junctions-2026-11-01.json` has SHA-256
+`8ea60c35c952a600fa526ebfd3e020e142b01706f50a87a9fbc8818ce9ce5b2b`.
+The complete authenticated originals stay in
+`/Volumes/KIOXIA/Developments/tmp/rnaseq-junction-source-success-20261101.EQWawE`;
+small original fixture BAM/SAM/BED, full primary outputs, statuses and counters
+are captured with member names, lengths and SHA-256 in
+`tests/fixtures/junctions/provenance.json`. They are data, not a restored runtime.
+The older failed source run remains separate and unchanged.
+
+Informative single/paired observations have event counters
+`11/6/1/3/1` and `22/12/2/6/2` (total/known/partial/novel/filtered), with
+distinct counts `6/2/1/3` (total/known/partial/novel). Full ordered rows, not
+summary totals alone, are the compatibility contract. Supplementary records
+and separate mates contribute support; duplicate annotation sites do not
+multiply counts. Independent known endpoints classify `120–270` as annotated
+even though the pair is absent from the gene model. The mixed CIGAR source
+row is `522–572`; canonical geometry is `530–580`. Source pooling combines
+admitted exact `chr1` and `CHR1` header contigs, while canonical identity is
+exact. Native retains exact-header validation and rejects the source-only
+`ChR1` annotation alias. Existing distribution ambiguity rejection is unchanged.
+
+Valid no-N/all-short native complete-zero transactions are an intentional
+source incompatibility: the actual upstream no-N files are empty at exit 0,
+and actual all-short output is partial at exit 1. Those retained observations
+are not rewritten or described as complete source success. Exports/R/PDF and
+saturation are excluded. All junction code remains private within the existing
+binary/library; no new dependency or foundation API is introduced.
+
+The new connected workflow test was observed RED on the missing junctions
+command before implementation. It covers full captured rows/counters/order,
+canonical geometry, case policy, empty/filtered input, report opt-in/default
+five preservation, shared original-record observation, workers and atomic-set
+failure. Local verification, new four-native qualification and representative
+junction performance are separate gates; earlier five-metric runs and timings
+below are not proofs for this addition.
+
+Local macOS aarch64 verification of this addition passes formatting, strict
+all-target/all-feature Clippy, and the full debug/release suites (four unit
+tests and eight workflow tests per profile). This is not four-native admission
+or a performance result; the private candidate remains unpublished.
 
 ## Candidate verification ledger
 

@@ -1,0 +1,78 @@
+{
+  "derived_policy": {
+    "N_events": [
+      {
+        "accepted": true,
+        "acceptor_known": true,
+        "annotation": "annotated",
+        "chrom": "CHR1",
+        "cigar": "20M50N20M",
+        "cigar_index": 1,
+        "donor_known": true,
+        "eligible_record": true,
+        "end": 170,
+        "exact_chrom": "chr1",
+        "flag": 0,
+        "length": 50,
+        "mapq": 30,
+        "minimum_pass": true,
+        "name": "alias",
+        "start": 120
+      }
+    ],
+    "annotation_sites": {
+      "acceptors": [
+        [
+          "CHR1",
+          170
+        ]
+      ],
+      "donors": [
+        [
+          "CHR1",
+          120
+        ]
+      ]
+    },
+    "distinct": {
+      "annotated": 1,
+      "complete_novel": 0,
+      "partial_novel": 0,
+      "total": 1
+    },
+    "events": {
+      "annotated": 1,
+      "complete_novel": 0,
+      "filtered": 0,
+      "partial_novel": 0,
+      "total": 1
+    },
+    "rows": [
+      {
+        "annotation": "annotated",
+        "chrom": "chr1",
+        "end": 170,
+        "read_count": 1,
+        "start": 120
+      }
+    ],
+    "scope": "independent policy derivation, not an observed source result"
+  },
+  "inputs": {
+    "genes.bed12": {
+      "bytes": 54,
+      "sha256": "b2746c18354a63ad38cc04b36839d5ac5a8c260b561030b44ad5ed91438dee8e"
+    },
+    "input.bam": {
+      "bytes": 333,
+      "sha256": "38ed4584e73f680d7417f80e746a41b42fd516e7377cd718d289c7a7cdc9b121"
+    },
+    "input.sam": {
+      "bytes": 183,
+      "sha256": "7e7940498cab3e66547ece5e6edd7b1b5b6200765199614dbe93c97c8744b6cc"
+    }
+  },
+  "sorted_sam_records": [
+    "alias\t0\tchr1\t101\t30\t20M50N20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\tIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII"
+  ]
+}

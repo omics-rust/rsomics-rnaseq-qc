@@ -11,18 +11,20 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 
 use crate::annotation::{Annotation, TranscriptIndex};
-use crate::cli::{Inputs, Profile};
+use crate::cli::{Inputs, Metric, Profile};
 use crate::metrics::distribution::{Distribution, DistributionResult};
+use crate::metrics::junctions::{JunctionAccumulator, JunctionPolicy, JunctionResult, SpliceSites};
 use crate::metrics::mapping::MappingResult;
 use crate::metrics::sampling::{CoverageResult, IntegrityResult, SampledMetrics};
 use crate::metrics::strandedness::{Strandedness, StrandednessResult};
 
-const METRICS: [&str; 5] = [
+const METRICS: [&str; 6] = [
     "mapping",
     "strandedness",
     "distribution",
     "coverage",
     "integrity",
+    "junctions",
 ];
 
 #[derive(Clone, Copy)]
@@ -32,25 +34,31 @@ pub(crate) struct Selection {
     distribution: bool,
     coverage: bool,
     integrity: bool,
+    junctions: bool,
 }
 
 impl Selection {
-    pub fn all() -> Self {
+    pub fn standard() -> Self {
         Self {
             mapping: true,
             strandedness: true,
             distribution: true,
             coverage: true,
             integrity: true,
+            junctions: false,
         }
     }
-    pub fn only(metric: &str) -> Self {
+    pub fn only(metric: Metric) -> Self {
+        Self::from_metrics(&[metric])
+    }
+    pub fn from_metrics(metrics: &[Metric]) -> Self {
         Self {
-            mapping: metric == "mapping",
-            strandedness: metric == "strandedness",
-            distribution: metric == "distribution",
-            coverage: metric == "coverage",
-            integrity: metric == "integrity",
+            mapping: metrics.contains(&Metric::Mapping),
+            strandedness: metrics.contains(&Metric::Strandedness),
+            distribution: metrics.contains(&Metric::Distribution),
+            coverage: metrics.contains(&Metric::Coverage),
+            integrity: metrics.contains(&Metric::Integrity),
+            junctions: metrics.contains(&Metric::Junctions),
         }
     }
     fn names(self) -> Vec<&'static str> {
@@ -60,6 +68,7 @@ impl Selection {
             self.distribution,
             self.coverage,
             self.integrity,
+            self.junctions,
         ]
         .into_iter()
         .zip(METRICS)
@@ -67,7 +76,7 @@ impl Selection {
         .collect()
     }
     fn needs_annotation(self) -> bool {
-        self.strandedness || self.distribution || self.coverage || self.integrity
+        self.strandedness || self.distribution || self.coverage || self.integrity || self.junctions
     }
 }
 
@@ -87,6 +96,8 @@ pub(crate) struct Report {
     pub coverage: Option<CoverageResult>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integrity: Option<IntegrityResult>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub junctions: Option<JunctionResult>,
 }
 
 #[derive(Serialize)]
@@ -152,6 +163,8 @@ struct MetricPolicy {
     pileup_adjust_overlaps: bool,
     pileup_maximum_depth: usize,
     pileup_baq: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    junctions: Option<JunctionPolicy>,
 }
 
 #[derive(Serialize)]
@@ -231,6 +244,15 @@ pub(crate) fn run(inputs: &Inputs, selection: Selection, emit_plain: bool) -> Re
         }
     }
     let mut mapping = selection.mapping.then(MappingResult::default);
+    let junction_policy = selection
+        .junctions
+        .then(|| JunctionPolicy::new(inputs.profile, inputs.mapq, inputs.min_intron.get()));
+    let mut junctions = junction_policy
+        .map(|policy| {
+            SpliceSites::new(&annotation, &reference_names, inputs.profile)
+                .map(|sites| JunctionAccumulator::new(sites, policy))
+        })
+        .transpose()?;
     let mut strandedness = selection.strandedness.then(Strandedness::default);
     let mut distribution = if selection.distribution {
         Some(Distribution::new(&annotation, &reference_names)?)
@@ -292,6 +314,9 @@ pub(crate) fn run(inputs: &Inputs, selection: Selection, emit_plain: bool) -> Re
         original_records += 1;
         record.decode_cigar_into(&mut cigar)?;
         validate_record(&record, &cigar, &references, &mut last_mapped)?;
+        if let Some(junctions) = &mut junctions {
+            junctions.observe(&record, &cigar);
+        }
         if let Some(mapping) = &mut mapping {
             mapping.observe(&record, &cigar, inputs.mapq);
         }
@@ -350,12 +375,12 @@ pub(crate) fn run(inputs: &Inputs, selection: Selection, emit_plain: bool) -> Re
         distribution: distribution.map(Distribution::finish),
         coverage,
         integrity,
+        junctions: junctions.map(JunctionAccumulator::finish),
     };
     let omitted_metrics = METRICS
         .into_iter()
         .filter(|metric| !report.metrics.contains(metric))
         .chain([
-            "junctions",
             "fragments",
             "bias",
             "duplication",
@@ -419,6 +444,7 @@ pub(crate) fn run(inputs: &Inputs, selection: Selection, emit_plain: bool) -> Re
             pileup_adjust_overlaps: true,
             pileup_maximum_depth: 8000,
             pileup_baq: false,
+            junctions: junction_policy,
         },
         known_limitations: vec![
             "Depth-8000 saturation is not independently certified by the retained RSeQC witnesses",

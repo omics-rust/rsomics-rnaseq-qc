@@ -22,8 +22,8 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// Run the complete five-metric shared-scan report.
-    Report(Inputs),
+    /// Run selected shared-scan metrics; defaults to the established five.
+    Report(ReportInputs),
     /// Summarize mapping, flags, pairing, strands, and splice counts.
     Mapping(Inputs),
     /// Infer protocol evidence from the first eligible annotated reads.
@@ -34,6 +34,32 @@ enum Command {
     Coverage(Inputs),
     /// Calculate transcript integrity and the eligible-transcript summary.
     Integrity(Inputs),
+    /// Annotate supported splice junctions and summarize event and distinct counts.
+    Junctions(Inputs),
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
+pub(crate) enum Metric {
+    Mapping,
+    Strandedness,
+    Distribution,
+    Coverage,
+    Integrity,
+    Junctions,
+}
+
+#[derive(Debug, Args)]
+struct ReportInputs {
+    #[command(flatten)]
+    inputs: Inputs,
+    /// Comma-separated metrics; defaults to mapping,strandedness,distribution,coverage,integrity.
+    #[arg(
+        long,
+        value_enum,
+        value_delimiter = ',',
+        help_heading = "Metric policy"
+    )]
+    metrics: Option<Vec<Metric>>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, ValueEnum)]
@@ -57,7 +83,7 @@ pub(crate) struct Inputs {
     /// Directory for the transactional JSON, TSV, and manifest output set.
     #[arg(long, value_name = "DIRECTORY", help_heading = "Outputs")]
     pub out: PathBuf,
-    /// Canonical geometry or pinned RSeQC distribution and query-local pileup.
+    /// Canonical geometry or pinned RSeQC metric-specific CIGAR and pileup policies.
     #[arg(
         long,
         value_enum,
@@ -67,9 +93,12 @@ pub(crate) struct Inputs {
     pub profile: Profile,
     #[arg(skip)]
     pub threads: Option<NonZero<usize>>,
-    /// Mapping and strandedness MAPQ cutoff; distribution and pileup retain their own policy.
+    /// Mapping, strandedness and junctions MAPQ cutoff; distribution and pileup retain their own policy.
     #[arg(long, default_value_t = 30, help_heading = "Metric policy")]
     pub mapq: u8,
+    /// Minimum retained intron length for junctions; shorter N events remain in totals.
+    #[arg(long, default_value = "50", help_heading = "Metric policy")]
+    pub min_intron: NonZero<u32>,
     /// First N eligible annotation-overlapping reads for strandedness; no random sampling.
     #[arg(long, default_value = "200000", help_heading = "Metric policy")]
     pub strand_sample_size: NonZero<u64>,
@@ -87,16 +116,27 @@ pub(crate) struct Inputs {
 impl Cli {
     pub fn run(self) -> std::process::ExitCode {
         let (mut inputs, metrics) = match self.command {
-            Command::Report(inputs) => (inputs, crate::report::Selection::all()),
-            Command::Mapping(inputs) => (inputs, crate::report::Selection::only("mapping")),
+            Command::Report(report) => {
+                let metrics = report.metrics.as_deref().map_or_else(
+                    crate::report::Selection::standard,
+                    crate::report::Selection::from_metrics,
+                );
+                (report.inputs, metrics)
+            }
+            Command::Mapping(inputs) => (inputs, crate::report::Selection::only(Metric::Mapping)),
             Command::Strandedness(inputs) => {
-                (inputs, crate::report::Selection::only("strandedness"))
+                (inputs, crate::report::Selection::only(Metric::Strandedness))
             }
             Command::Distribution(inputs) => {
-                (inputs, crate::report::Selection::only("distribution"))
+                (inputs, crate::report::Selection::only(Metric::Distribution))
             }
-            Command::Coverage(inputs) => (inputs, crate::report::Selection::only("coverage")),
-            Command::Integrity(inputs) => (inputs, crate::report::Selection::only("integrity")),
+            Command::Coverage(inputs) => (inputs, crate::report::Selection::only(Metric::Coverage)),
+            Command::Integrity(inputs) => {
+                (inputs, crate::report::Selection::only(Metric::Integrity))
+            }
+            Command::Junctions(inputs) => {
+                (inputs, crate::report::Selection::only(Metric::Junctions))
+            }
         };
         inputs.threads = self.threads.requested();
         rsomics_common::run(

@@ -1,0 +1,7 @@
+chrom	intron_st(0-based)	intron_end(1-based)	read_count	annotation
+chr1	120	170	10	 annotated
+chr1	120	270	2	 annotated
+chr1	120	171	2	 partial_novel
+chr1	190	240	2	 complete_novel
+chr1	320	370	2	 complete_novel
+chr1	522	572	2	 complete_novel
